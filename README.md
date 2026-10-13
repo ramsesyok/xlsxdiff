@@ -9,6 +9,8 @@
 go install github.com/ramsesyok/xlsxdiff@latest
 ```
 
+Go がない環境では、[Releases](https://github.com/ramsesyok/xlsxdiff/releases) から OS / アーキテクチャに合ったアーカイブ（Linux / macOS / Windows × amd64 / arm64）をダウンロードし、`xlsxdiff` を PATH の通った場所に置いてください。
+
 ## 使い方
 
 ```sh
@@ -23,6 +25,7 @@ xlsxdiff --expect expected.xlsx --actual actual.xlsx
 | `--raw` | 表示書式（数値書式・日付書式）を適用せず、生の値で比較する |
 | `--ignore-sheet-order` | シートの並び順の違いを無視する |
 | `-q, --quiet` | 何も出力せず終了コードのみ返す |
+| `--version` | バージョン表示 |
 
 ### 終了コード
 
@@ -72,3 +75,15 @@ steps:
       command: xlsxdiff --expect testdata/expected.xlsx --actual out/report.xlsx
     test: current.exit_code == 0
 ```
+
+## リリース
+
+`v*` 形式のタグを push すると、GitHub Actions（`.github/workflows/release.yml`）が GoReleaser でビルドし、GitHub Releases に公開します。
+Actions タブから `Release` ワークフローを手動実行（`tag` に `v0.1.0` などを指定）しても、タグ作成とリリースをまとめて行えます。
+
+依存ライブラリを更新したら `go run scripts/licenses.go` で `THIRD_PARTY_NOTICES.md` を再生成してください（CI で差分をチェックしています）。
+
+## ライセンス
+
+自作部分は [MIT License](LICENSE)（Copyright (c) 2026 ramsesyok）です。
+依存ライブラリの表示は [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) を参照してください。
