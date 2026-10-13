@@ -42,6 +42,8 @@ xlsxdiff --expect expected.xlsx --actual actual.xlsx
 - 値が空のセルと存在しないセルは同じとみなします
 - 数式そのもの、書式（フォント・色・罫線）、結合セル、列幅などは比較対象外です
 
+判定基準の詳細（具体例つき、テスト管理者向け）は [how-compare.md](how-compare.md) を参照してください。
+
 ## 出力例
 
 text:
