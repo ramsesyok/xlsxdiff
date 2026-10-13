@@ -112,6 +112,50 @@ func TestRootExitCodes(t *testing.T) {
 	}
 }
 
+func TestRootIgnoreConfig(t *testing.T) {
+	expDir := writeDir(t, map[string]string{"report.xlsx": "1", "sub/detail.xlsx": "2"})
+	actDir := writeDir(t, map[string]string{"report.xlsx": "1", "sub/detail.xlsx": "changed"})
+	writeConfig := func(content string) string {
+		path := filepath.Join(t.TempDir(), "ignore.yaml")
+		if err := os.WriteFile(path, []byte(content), 0o644); err != nil {
+			t.Fatal(err)
+		}
+		return path
+	}
+	matching := writeConfig("- file: sub/detail.xlsx\n  sheet: Sheet1\n  cell: A1\n")
+	typo := writeConfig("- file: sub/detail.xlsx\n  sheet: Sheet1\n  cell: A1\n- file: sub/detai.xlsx\n  sheet: Sheet1\n  row: 1\n")
+	invalid := writeConfig("- file: sub/detail.xlsx\n  column: 1\n")
+
+	tests := []struct {
+		name       string
+		config     string
+		extra      []string
+		wantCode   int
+		wantStderr string
+	}{
+		{"ignored cell makes dirs equal", matching, nil, exitEqual, ""},
+		{"unused rule warns but still compares", typo, nil, exitEqual, `line 4: file "sub/detai.xlsx" sheet "Sheet1" matched no compared sheet`},
+		{"quiet suppresses warning", typo, []string{"-q"}, exitEqual, ""},
+		{"invalid config is an error", invalid, nil, exitError, "sheet is required"},
+		{"missing config file is an error", filepath.Join(t.TempDir(), "none.yaml"), nil, exitError, "read ignore config"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			args := append([]string{"--expect-dir", expDir, "--actual-dir", actDir, "--ignore-config", tt.config}, tt.extra...)
+			code, _, stderr := run(t, args...)
+			if code != tt.wantCode {
+				t.Errorf("exit code = %d, want %d (stderr: %s)", code, tt.wantCode, stderr)
+			}
+			if tt.wantStderr == "" && stderr != "" {
+				t.Errorf("stderr = %q, want empty", stderr)
+			}
+			if !strings.Contains(stderr, tt.wantStderr) {
+				t.Errorf("stderr = %q, want to contain %q", stderr, tt.wantStderr)
+			}
+		})
+	}
+}
+
 func TestRootJSON(t *testing.T) {
 	a := writeBook(t, "a.xlsx", "hello")
 	b := writeBook(t, "b.xlsx", "world")

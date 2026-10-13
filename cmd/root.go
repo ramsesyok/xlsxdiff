@@ -11,6 +11,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/ramsesyok/xlsxdiff/internal/compare"
+	"github.com/ramsesyok/xlsxdiff/internal/ignore"
 	"github.com/ramsesyok/xlsxdiff/internal/report"
 )
 
@@ -29,6 +30,7 @@ var (
 	actualPath       string
 	expectDir        string
 	actualDir        string
+	ignoreConfig     string
 	format           string
 	raw              bool
 	ignoreSheetOrder bool
@@ -46,13 +48,17 @@ var rootCmd = &cobra.Command{
 （サブディレクトリを含む）の .xlsx ファイルを相対パスで対応付けて比較します。
 ファイルの過不足も差分として報告します。
 
+--ignore-config に YAML ファイルを指定すると、ファイル・シートごとに
+列・行・セルを比較から除外できます。
+
 終了コード:
   0  一致
   1  差分あり
   2  エラー（引数不正、ファイルが開けない など）`,
 	Example: `  xlsxdiff --expect expected.xlsx --actual actual.xlsx
   xlsxdiff --expect expected.xlsx --actual actual.xlsx --format json
-  xlsxdiff --expect-dir testdata/expected --actual-dir out`,
+  xlsxdiff --expect-dir testdata/expected --actual-dir out
+  xlsxdiff --expect-dir testdata/expected --actual-dir out --ignore-config ignore.yaml`,
 	Args:          cobra.NoArgs,
 	SilenceUsage:  true,
 	SilenceErrors: true,
@@ -62,6 +68,13 @@ var rootCmd = &cobra.Command{
 		}
 
 		opts := compare.Options{Raw: raw, IgnoreSheetOrder: ignoreSheetOrder}
+		if ignoreConfig != "" {
+			rules, err := ignore.Load(ignoreConfig)
+			if err != nil {
+				return err
+			}
+			opts.Ignore = rules
+		}
 		var diffs []compare.Diff
 		var err error
 		if expectDir != "" {
@@ -74,6 +87,10 @@ var rootCmd = &cobra.Command{
 		}
 
 		if !quiet {
+			// 当てはまらなかった無視設定は、ファイル名やシート名の誤記の可能性があるので知らせる。
+			for _, r := range opts.Ignore.Unused() {
+				fmt.Fprintf(cmd.ErrOrStderr(), "warning: %s line %d: file %q sheet %q matched no compared sheet\n", ignoreConfig, r.Line, r.File, r.Sheet)
+			}
 			out := cmd.OutOrStdout()
 			if format == "json" {
 				err = report.JSON(out, diffs)
@@ -116,6 +133,7 @@ func init() {
 	rootCmd.Flags().StringVar(&actualPath, "actual", "", "実際の Excel ファイルパス")
 	rootCmd.Flags().StringVar(&expectDir, "expect-dir", "", "期待値の Excel ファイルを置いたディレクトリ（サブディレクトリを含む）")
 	rootCmd.Flags().StringVar(&actualDir, "actual-dir", "", "実際の Excel ファイルを置いたディレクトリ（サブディレクトリを含む）")
+	rootCmd.Flags().StringVar(&ignoreConfig, "ignore-config", "", "比較から除外する列・行・セルを書いた YAML ファイル")
 	rootCmd.Flags().StringVar(&format, "format", "text", "出力形式: text | json")
 	rootCmd.Flags().BoolVar(&raw, "raw", false, "表示書式を適用せず生の値で比較する")
 	rootCmd.Flags().BoolVar(&ignoreSheetOrder, "ignore-sheet-order", false, "シートの並び順の違いを無視する")

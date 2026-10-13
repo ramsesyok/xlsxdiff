@@ -3,9 +3,12 @@ package compare
 
 import (
 	"fmt"
+	"path/filepath"
 	"slices"
 
 	"github.com/xuri/excelize/v2"
+
+	"github.com/ramsesyok/xlsxdiff/internal/ignore"
 )
 
 // DiffKind は差分の種類を表す。
@@ -43,10 +46,18 @@ type Options struct {
 	Raw bool
 	// IgnoreSheetOrder が true の場合、シートの並び順の違いを無視する。
 	IgnoreSheetOrder bool
+	// Ignore は比較から除外するセルの設定。nil なら除外しない。
+	Ignore *ignore.Rules
 }
 
 // Files は 2 つの Excel ファイルを開いて比較する。
+// 無視設定（Options.Ignore）は expectPath のファイル名で照合する。
 func Files(expectPath, actualPath string, opts Options) ([]Diff, error) {
+	return files(expectPath, actualPath, filepath.Base(expectPath), opts)
+}
+
+// files は 2 つの Excel ファイルを開いて比較する。key は無視設定と照合するファイル名（"/" 区切り）。
+func files(expectPath, actualPath, key string, opts Options) ([]Diff, error) {
 	expect, err := excelize.OpenFile(expectPath)
 	if err != nil {
 		return nil, fmt.Errorf("open expect %q: %w", expectPath, err)
@@ -59,12 +70,17 @@ func Files(expectPath, actualPath string, opts Options) ([]Diff, error) {
 	}
 	defer actual.Close()
 
-	return Workbooks(expect, actual, opts)
+	return workbooks(expect, actual, key, opts)
 }
 
 // Workbooks は開済みの 2 つのブックを比較する。
 // シート構成の差分を先に、続いて共通シートのセル差分を expect のシート順に返す。
+// 無視設定はファイル名を持たないので適用されない。
 func Workbooks(expect, actual *excelize.File, opts Options) ([]Diff, error) {
+	return workbooks(expect, actual, "", opts)
+}
+
+func workbooks(expect, actual *excelize.File, key string, opts Options) ([]Diff, error) {
 	expSheets := expect.GetSheetList()
 	actSheets := actual.GetSheetList()
 
@@ -75,7 +91,7 @@ func Workbooks(expect, actual *excelize.File, opts Options) ([]Diff, error) {
 		if !actSet[sheet] {
 			continue
 		}
-		cellDiffs, err := compareSheet(expect, actual, sheet, opts)
+		cellDiffs, err := compareSheet(expect, actual, sheet, opts, opts.Ignore.For(key, sheet))
 		if err != nil {
 			return nil, err
 		}
@@ -111,8 +127,8 @@ func compareSheetLists(exp, act []string, opts Options) []Diff {
 }
 
 // compareSheet はシート内のセル値を比較する。
-// 値が空のセルと存在しないセルは同じものとして扱う。
-func compareSheet(expect, actual *excelize.File, sheet string, opts Options) ([]Diff, error) {
+// 値が空のセルと存在しないセルは同じものとして扱う。skip が true を返すセル（列・行は 1 始まり）は比較しない。
+func compareSheet(expect, actual *excelize.File, sheet string, opts Options, skip func(col, row int) bool) ([]Diff, error) {
 	ro := excelize.Options{RawCellValue: opts.Raw}
 	expRows, err := expect.GetRows(sheet, ro)
 	if err != nil {
@@ -128,7 +144,7 @@ func compareSheet(expect, actual *excelize.File, sheet string, opts Options) ([]
 		expRow, actRow := at(expRows, r), at(actRows, r)
 		for c := range max(len(expRow), len(actRow)) {
 			ev, av := at(expRow, c), at(actRow, c)
-			if ev == av {
+			if ev == av || (skip != nil && skip(c+1, r+1)) {
 				continue
 			}
 			name, err := excelize.CoordinatesToCellName(c+1, r+1)

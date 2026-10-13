@@ -42,7 +42,7 @@ func Dirs(expectDir, actualDir string, opts Options) ([]Diff, error) {
 		if !actSet[f] {
 			continue
 		}
-		fileDiffs, err := Files(filepath.Join(expectDir, filepath.FromSlash(f)), filepath.Join(actualDir, filepath.FromSlash(f)), opts)
+		fileDiffs, err := files(filepath.Join(expectDir, filepath.FromSlash(f)), filepath.Join(actualDir, filepath.FromSlash(f)), f, opts)
 		if err != nil {
 			return nil, err
 		}

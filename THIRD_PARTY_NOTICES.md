@@ -17,6 +17,7 @@ For each module, the source archive below provides its exact, unmodified version
 | github.com/xuri/efp | v0.0.1 | [source archive](https://proxy.golang.org/github.com/xuri/efp/@v/v0.0.1.zip) |
 | github.com/xuri/excelize/v2 | v2.11.0 | [source archive](https://proxy.golang.org/github.com/xuri/excelize/v2/@v/v2.11.0.zip) |
 | github.com/xuri/nfp | v0.0.2-0.20250530014748-2ddeb826f9a9 | [source archive](https://proxy.golang.org/github.com/xuri/nfp/@v/v0.0.2-0.20250530014748-2ddeb826f9a9.zip) |
+| go.yaml.in/yaml/v3 | v3.0.5 | [source archive](https://proxy.golang.org/go.yaml.in/yaml/v3/@v/v3.0.5.zip) |
 | golang.org/x/crypto | v0.53.0 | [source archive](https://proxy.golang.org/golang.org/x/crypto/@v/v0.53.0.zip) |
 | golang.org/x/net | v0.56.0 | [source archive](https://proxy.golang.org/golang.org/x/net/@v/v0.56.0.zip) |
 | golang.org/x/text | v0.38.0 | [source archive](https://proxy.golang.org/golang.org/x/text/@v/v0.38.0.zip) |
@@ -1059,6 +1060,84 @@ SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
 CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+```
+
+
+## go.yaml.in/yaml/v3@v3.0.5
+
+Source: https://proxy.golang.org/go.yaml.in/yaml/v3/@v/v3.0.5.zip
+
+### LICENSE
+
+```text
+
+This project is covered by two different licenses: MIT and Apache.
+
+#### MIT License ####
+
+The following files were ported to Go from C files of libyaml, and thus
+are still covered by their original MIT license, with the additional
+copyright staring in 2011 when the project was ported over:
+
+    apic.go emitterc.go parserc.go readerc.go scannerc.go
+    writerc.go yamlh.go yamlprivateh.go
+
+Copyright (c) 2006-2010 Kirill Simonov
+Copyright (c) 2006-2011 Kirill Simonov
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of
+this software and associated documentation files (the "Software"), to deal in
+the Software without restriction, including without limitation the rights to
+use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies
+of the Software, and to permit persons to whom the Software is furnished to do
+so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+### Apache License ###
+
+All the remaining project files are covered by the Apache license:
+
+Copyright (c) 2011-2019 Canonical Ltd
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+```
+
+### NOTICE
+
+```text
+Copyright 2011-2016 Canonical Ltd.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 ```
 
 

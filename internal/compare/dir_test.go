@@ -8,6 +8,8 @@ import (
 	"testing"
 
 	"github.com/xuri/excelize/v2"
+
+	"github.com/ramsesyok/xlsxdiff/internal/ignore"
 )
 
 // writeTree は dir 配下に files（相対パス → Sheet1!A1 の値）を作る。
@@ -130,5 +132,42 @@ func TestDirsErrors(t *testing.T) {
 				t.Errorf("err = %v, want containing %q", err, tt.wantErr)
 			}
 		})
+	}
+}
+
+func TestDirsWithIgnore(t *testing.T) {
+	expDir, actDir := t.TempDir(), t.TempDir()
+	writeTree(t, expDir, map[string]string{"a.xlsx": "1", "monthly/m1.xlsx": "2", "monthly/m2.xlsx": "3"})
+	writeTree(t, actDir, map[string]string{"a.xlsx": "X", "monthly/m1.xlsx": "Y", "monthly/m2.xlsx": "Z"})
+
+	rules, err := ignore.Parse([]byte("- file: \"monthly/*.xlsx\"\n  sheet: Sheet1\n  cell: A1\n"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	got, err := Dirs(expDir, actDir, Options{Ignore: rules})
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := []Diff{{Kind: CellValue, File: "a.xlsx", Sheet: "Sheet1", Cell: "A1", Expected: "1", Actual: "X"}}
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("diffs mismatch\n got: %#v\nwant: %#v", got, want)
+	}
+}
+
+func TestFilesWithIgnoreUsesExpectFileName(t *testing.T) {
+	expDir, actDir := t.TempDir(), t.TempDir()
+	writeTree(t, expDir, map[string]string{"report.xlsx": "1"})
+	writeTree(t, actDir, map[string]string{"output.xlsx": "2"})
+
+	rules, err := ignore.Parse([]byte("- file: report.xlsx\n  sheet: Sheet1\n  column: A\n"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	got, err := Files(filepath.Join(expDir, "report.xlsx"), filepath.Join(actDir, "output.xlsx"), Options{Ignore: rules})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(got) != 0 {
+		t.Errorf("want no diffs, got %#v", got)
 	}
 }
