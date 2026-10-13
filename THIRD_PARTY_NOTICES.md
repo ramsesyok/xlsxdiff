@@ -12,7 +12,7 @@ For each module, the source archive below provides its exact, unmodified version
 | github.com/richardlehane/mscfb | v1.0.7 | [source archive](https://proxy.golang.org/github.com/richardlehane/mscfb/@v/v1.0.7.zip) |
 | github.com/richardlehane/msoleps | v1.0.6 | [source archive](https://proxy.golang.org/github.com/richardlehane/msoleps/@v/v1.0.6.zip) |
 | github.com/spf13/cobra | v1.10.2 | [source archive](https://proxy.golang.org/github.com/spf13/cobra/@v/v1.10.2.zip) |
-| github.com/spf13/pflag | v1.0.9 | [source archive](https://proxy.golang.org/github.com/spf13/pflag/@v/v1.0.9.zip) |
+| github.com/spf13/pflag | v1.0.10 | [source archive](https://proxy.golang.org/github.com/spf13/pflag/@v/v1.0.10.zip) |
 | github.com/tiendc/go-deepcopy | v1.7.2 | [source archive](https://proxy.golang.org/github.com/tiendc/go-deepcopy/@v/v1.7.2.zip) |
 | github.com/xuri/efp | v0.0.1 | [source archive](https://proxy.golang.org/github.com/xuri/efp/@v/v0.0.1.zip) |
 | github.com/xuri/excelize/v2 | v2.11.0 | [source archive](https://proxy.golang.org/github.com/xuri/excelize/v2/@v/v2.11.0.zip) |
@@ -878,9 +878,9 @@ Source: https://proxy.golang.org/github.com/spf13/cobra/@v/v1.10.2.zip
 ```
 
 
-## github.com/spf13/pflag@v1.0.9
+## github.com/spf13/pflag@v1.0.10
 
-Source: https://proxy.golang.org/github.com/spf13/pflag/@v/v1.0.9.zip
+Source: https://proxy.golang.org/github.com/spf13/pflag/@v/v1.0.10.zip
 
 ### LICENSE
 
