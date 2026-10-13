@@ -1,0 +1,51 @@
+name: Dependabot notices
+
+# Dependabot updates go.mod / go.sum but not THIRD_PARTY_NOTICES.md, so the
+# licenses check in CI fails on every Go dependency bump. Regenerate the notices
+# on the Dependabot branch and commit them back.
+on:
+  pull_request:
+    paths: [go.mod, go.sum]
+
+permissions:
+  contents: write # push the regenerated notices
+  actions: write  # dispatch CI for the new commit
+
+concurrency:
+  group: dependabot-notices-${{ github.head_ref }}
+  cancel-in-progress: true
+
+jobs:
+  regenerate:
+    if: >-
+      github.event.pull_request.user.login == 'dependabot[bot]' &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.head_ref }}
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+      # Only the standard-library script is compiled and run here; dependency
+      # code is listed and read, never executed.
+      - name: regenerate THIRD_PARTY_NOTICES.md
+        run: go run scripts/licenses.go
+      - name: commit and run CI
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BRANCH: ${{ github.head_ref }}
+        run: |
+          if git diff --quiet -- THIRD_PARTY_NOTICES.md; then
+            echo "THIRD_PARTY_NOTICES.md is up to date"
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add THIRD_PARTY_NOTICES.md
+          git commit -m 'Regenerate THIRD_PARTY_NOTICES.md'
+          git push origin "HEAD:$BRANCH"
+          # A push made with GITHUB_TOKEN does not trigger workflows, but
+          # workflow_dispatch does, so start CI on the new commit explicitly.
+          gh workflow run ci.yml --ref "$BRANCH"
