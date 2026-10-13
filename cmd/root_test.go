@@ -3,6 +3,7 @@ package cmd
 import (
 	"bytes"
 	"encoding/json"
+	"os"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -26,6 +27,27 @@ func writeBook(t *testing.T, name, value string) string {
 	return path
 }
 
+// writeDir は dir 配下に files（相対パス → Sheet1!A1 の値）の xlsx を作り、dir を返す。
+func writeDir(t *testing.T, files map[string]string) string {
+	t.Helper()
+	dir := t.TempDir()
+	for rel, value := range files {
+		path := filepath.Join(dir, filepath.FromSlash(rel))
+		if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+			t.Fatal(err)
+		}
+		f := excelize.NewFile()
+		if err := f.SetCellValue("Sheet1", "A1", value); err != nil {
+			t.Fatal(err)
+		}
+		if err := f.SaveAs(path); err != nil {
+			t.Fatal(err)
+		}
+		f.Close()
+	}
+	return dir
+}
+
 // run は rootCmd を args で実行し、終了コードと stdout / stderr を返す。
 func run(t *testing.T, args ...string) (int, string, string) {
 	t.Helper()
@@ -46,6 +68,9 @@ func TestRootExitCodes(t *testing.T) {
 	a := writeBook(t, "a.xlsx", "hello")
 	same := writeBook(t, "same.xlsx", "hello")
 	b := writeBook(t, "b.xlsx", "world")
+	expDir := writeDir(t, map[string]string{"top.xlsx": "1", "sub/inner.xlsx": "2"})
+	sameDir := writeDir(t, map[string]string{"top.xlsx": "1", "sub/inner.xlsx": "2"})
+	diffDir := writeDir(t, map[string]string{"top.xlsx": "1", "sub/inner.xlsx": "9", "sub/extra.xlsx": "3"})
 
 	tests := []struct {
 		name       string
@@ -57,7 +82,13 @@ func TestRootExitCodes(t *testing.T) {
 		{"equal", []string{"--expect", a, "--actual", same}, exitEqual, "", ""},
 		{"diff", []string{"--expect", a, "--actual", b}, exitDiff, `Sheet1!A1: expected "hello", actual "world"`, ""},
 		{"quiet", []string{"--expect", a, "--actual", b, "-q"}, exitDiff, "", ""},
-		{"missing flag", []string{"--expect", a}, exitError, "", `required flag(s) "actual" not set`},
+		{"missing flag", []string{"--expect", a}, exitError, "", "missing [actual]"},
+		{"no flags", nil, exitError, "", "at least one of the flags in the group [expect expect-dir] is required"},
+		{"missing dir flag", []string{"--expect-dir", expDir}, exitError, "", "missing [actual-dir]"},
+		{"file and dir mixed", []string{"--expect", a, "--actual", b, "--expect-dir", expDir, "--actual-dir", sameDir}, exitError, "", "none of the others can be"},
+		{"dir equal", []string{"--expect-dir", expDir, "--actual-dir", sameDir}, exitEqual, "", ""},
+		{"dir diff", []string{"--expect-dir", expDir, "--actual-dir", diffDir}, exitDiff,
+			"file \"sub/extra.xlsx\": unexpected in actual\nsub/inner.xlsx: Sheet1!A1: expected \"2\", actual \"9\"\n2 difference(s) found", ""},
 		{"file not found", []string{"--expect", a, "--actual", filepath.Join(t.TempDir(), "nope.xlsx")}, exitError, "", "open actual"},
 		{"bad format", []string{"--expect", a, "--actual", b, "--format", "xml"}, exitError, "", "invalid --format"},
 	}

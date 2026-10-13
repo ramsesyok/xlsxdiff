@@ -12,16 +12,25 @@ import (
 // Text は人向けの形式で差分を出力する。差分が無ければ何も出力しない。
 func Text(w io.Writer, diffs []compare.Diff) error {
 	for _, d := range diffs {
+		// ディレクトリ比較ではどのファイルの差分かを先頭に付ける。
+		prefix := ""
+		if d.File != "" {
+			prefix = d.File + ": "
+		}
 		var err error
 		switch d.Kind {
+		case compare.FileMissing:
+			_, err = fmt.Fprintf(w, "file %q: missing in actual\n", d.File)
+		case compare.FileExtra:
+			_, err = fmt.Fprintf(w, "file %q: unexpected in actual\n", d.File)
 		case compare.SheetMissing:
-			_, err = fmt.Fprintf(w, "sheet %q: missing in actual\n", d.Sheet)
+			_, err = fmt.Fprintf(w, "%ssheet %q: missing in actual\n", prefix, d.Sheet)
 		case compare.SheetExtra:
-			_, err = fmt.Fprintf(w, "sheet %q: unexpected in actual\n", d.Sheet)
+			_, err = fmt.Fprintf(w, "%ssheet %q: unexpected in actual\n", prefix, d.Sheet)
 		case compare.SheetOrder:
-			_, err = fmt.Fprintf(w, "sheet order: expected %q, actual %q\n", d.Expected, d.Actual)
+			_, err = fmt.Fprintf(w, "%ssheet order: expected %q, actual %q\n", prefix, d.Expected, d.Actual)
 		case compare.CellValue:
-			_, err = fmt.Fprintf(w, "%s!%s: expected %q, actual %q\n", d.Sheet, d.Cell, d.Expected, d.Actual)
+			_, err = fmt.Fprintf(w, "%s%s!%s: expected %q, actual %q\n", prefix, d.Sheet, d.Cell, d.Expected, d.Actual)
 		}
 		if err != nil {
 			return err

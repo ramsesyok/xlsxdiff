@@ -27,6 +27,8 @@ var errDiffFound = errors.New("differences found")
 var (
 	expectPath       string
 	actualPath       string
+	expectDir        string
+	actualDir        string
 	format           string
 	raw              bool
 	ignoreSheetOrder bool
@@ -35,17 +37,22 @@ var (
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:   "xlsxdiff --expect <file> --actual <file>",
+	Use:   "xlsxdiff (--expect <file> --actual <file> | --expect-dir <dir> --actual-dir <dir>)",
 	Short: "2 つの Excel ファイルのシート構成とセル内容が同じか確認する",
 	Long: `2 つの Excel ファイル（.xlsx / .xlsm など）を比較し、
 シート構成（シート名・並び順）と各セルの値が同じかを確認します。
+
+--expect-dir / --actual-dir を指定すると、2 つのディレクトリ配下
+（サブディレクトリを含む）の .xlsx ファイルを相対パスで対応付けて比較します。
+ファイルの過不足も差分として報告します。
 
 終了コード:
   0  一致
   1  差分あり
   2  エラー（引数不正、ファイルが開けない など）`,
 	Example: `  xlsxdiff --expect expected.xlsx --actual actual.xlsx
-  xlsxdiff --expect expected.xlsx --actual actual.xlsx --format json`,
+  xlsxdiff --expect expected.xlsx --actual actual.xlsx --format json
+  xlsxdiff --expect-dir testdata/expected --actual-dir out`,
 	Args:          cobra.NoArgs,
 	SilenceUsage:  true,
 	SilenceErrors: true,
@@ -54,10 +61,14 @@ var rootCmd = &cobra.Command{
 			return fmt.Errorf("invalid --format %q: must be text or json", format)
 		}
 
-		diffs, err := compare.Files(expectPath, actualPath, compare.Options{
-			Raw:              raw,
-			IgnoreSheetOrder: ignoreSheetOrder,
-		})
+		opts := compare.Options{Raw: raw, IgnoreSheetOrder: ignoreSheetOrder}
+		var diffs []compare.Diff
+		var err error
+		if expectDir != "" {
+			diffs, err = compare.Dirs(expectDir, actualDir, opts)
+		} else {
+			diffs, err = compare.Files(expectPath, actualPath, opts)
+		}
 		if err != nil {
 			return err
 		}
@@ -101,12 +112,19 @@ func exitCode(err error) int {
 }
 
 func init() {
-	rootCmd.Flags().StringVar(&expectPath, "expect", "", "期待値の Excel ファイルパス（必須）")
-	rootCmd.Flags().StringVar(&actualPath, "actual", "", "実際の Excel ファイルパス（必須）")
+	rootCmd.Flags().StringVar(&expectPath, "expect", "", "期待値の Excel ファイルパス")
+	rootCmd.Flags().StringVar(&actualPath, "actual", "", "実際の Excel ファイルパス")
+	rootCmd.Flags().StringVar(&expectDir, "expect-dir", "", "期待値の Excel ファイルを置いたディレクトリ（サブディレクトリを含む）")
+	rootCmd.Flags().StringVar(&actualDir, "actual-dir", "", "実際の Excel ファイルを置いたディレクトリ（サブディレクトリを含む）")
 	rootCmd.Flags().StringVar(&format, "format", "text", "出力形式: text | json")
 	rootCmd.Flags().BoolVar(&raw, "raw", false, "表示書式を適用せず生の値で比較する")
 	rootCmd.Flags().BoolVar(&ignoreSheetOrder, "ignore-sheet-order", false, "シートの並び順の違いを無視する")
 	rootCmd.Flags().BoolVarP(&quiet, "quiet", "q", false, "何も出力せず終了コードのみ返す")
-	_ = rootCmd.MarkFlagRequired("expect")
-	_ = rootCmd.MarkFlagRequired("actual")
+	// ファイル比較（--expect/--actual）かディレクトリ比較（--expect-dir/--actual-dir）の
+	// どちらか一方を、両方のパスを揃えて指定させる。
+	rootCmd.MarkFlagsRequiredTogether("expect", "actual")
+	rootCmd.MarkFlagsRequiredTogether("expect-dir", "actual-dir")
+	rootCmd.MarkFlagsMutuallyExclusive("expect", "expect-dir")
+	rootCmd.MarkFlagsMutuallyExclusive("actual", "actual-dir")
+	rootCmd.MarkFlagsOneRequired("expect", "expect-dir")
 }

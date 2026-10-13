@@ -20,15 +20,21 @@ const (
 	SheetOrder DiffKind = "sheet_order"
 	// CellValue はセルの値が異なることを表す。
 	CellValue DiffKind = "cell_value"
+	// FileMissing はディレクトリ比較で expect にあるファイルが actual に存在しないことを表す。
+	FileMissing DiffKind = "file_missing"
+	// FileExtra はディレクトリ比較で actual に expect にないファイルが存在することを表す。
+	FileExtra DiffKind = "file_extra"
 )
 
 // Diff は 1 件の差分を表す。
 type Diff struct {
-	Kind     DiffKind `json:"kind"`
-	Sheet    string   `json:"sheet,omitempty"`
-	Cell     string   `json:"cell,omitempty"`
-	Expected any      `json:"expected,omitempty"`
-	Actual   any      `json:"actual,omitempty"`
+	Kind DiffKind `json:"kind"`
+	// File はディレクトリ比較時の相対パス。ファイル比較では空。
+	File     string `json:"file,omitempty"`
+	Sheet    string `json:"sheet,omitempty"`
+	Cell     string `json:"cell,omitempty"`
+	Expected any    `json:"expected,omitempty"`
+	Actual   any    `json:"actual,omitempty"`
 }
 
 // Options は比較の挙動を制御する。

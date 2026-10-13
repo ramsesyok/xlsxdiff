@@ -14,13 +14,21 @@ Go がない環境では、[Releases](https://github.com/ramsesyok/xlsxdiff/rele
 ## 使い方
 
 ```sh
+# ファイル同士を比較
 xlsxdiff --expect expected.xlsx --actual actual.xlsx
+
+# ディレクトリ同士を比較（サブディレクトリを含む .xlsx をすべて比較）
+xlsxdiff --expect-dir testdata/expected --actual-dir out
 ```
+
+`--expect` / `--actual`（ファイル比較）か `--expect-dir` / `--actual-dir`（ディレクトリ比較）のどちらか一方を、2 つ揃えて指定します。
 
 | オプション | 説明 |
 |---|---|
-| `--expect <file>` | 期待値の Excel ファイル（必須） |
-| `--actual <file>` | 実際の Excel ファイル（必須） |
+| `--expect <file>` | 期待値の Excel ファイル |
+| `--actual <file>` | 実際の Excel ファイル |
+| `--expect-dir <dir>` | 期待値の Excel ファイルを置いたディレクトリ |
+| `--actual-dir <dir>` | 実際の Excel ファイルを置いたディレクトリ |
 | `--format text\|json` | 出力形式（既定 `text`） |
 | `--raw` | 表示書式（数値書式・日付書式）を適用せず、生の値で比較する |
 | `--ignore-sheet-order` | シートの並び順の違いを無視する |
@@ -33,7 +41,7 @@ xlsxdiff --expect expected.xlsx --actual actual.xlsx
 |---|---|
 | `0` | 一致 |
 | `1` | 差分あり |
-| `2` | エラー（必須引数なし、ファイルが開けない など） |
+| `2` | エラー（必須引数なし、ファイルが開けない、`--expect-dir` に .xlsx が 1 つもない など） |
 
 ## 比較内容
 
@@ -41,6 +49,7 @@ xlsxdiff --expect expected.xlsx --actual actual.xlsx
 - **セル内容**: 両方に存在するシートの全セルの値。既定では Excel 上の表示値（書式適用後の文字列）で比較し、`--raw` で生の値で比較します
 - 値が空のセルと存在しないセルは同じとみなします
 - 数式そのもの、書式（フォント・色・罫線）、結合セル、列幅などは比較対象外です
+- **ディレクトリ比較**: 両ディレクトリ配下（サブディレクトリを含む）の `.xlsx` を相対パスで対応付けて比較し、ファイルの過不足も差分として報告します。拡張子の大文字・小文字は区別せず、Excel のロックファイル（`~$` で始まるファイル）と `.xlsx` 以外のファイルは無視します
 
 判定基準の詳細（具体例つき、テスト管理者向け）は [how-compare.md](how-compare.md) を参照してください。
 
@@ -68,6 +77,17 @@ json（`--format json`）:
 
 `kind` は `sheet_missing` / `sheet_extra` / `sheet_order` / `cell_value` のいずれかです。
 
+ディレクトリ比較では、各行の先頭に対象ファイルの相対パスが付き、ファイルの過不足が追加で報告されます。
+
+```
+file "monthly/2026-10.xlsx": missing in actual
+file "monthly/2026-11.xlsx": unexpected in actual
+monthly/2026-09.xlsx: Sheet1!A1: expected "A", actual "A2"
+3 difference(s) found
+```
+
+json では各差分に `file`（相対パス）が付き、`kind` に `file_missing` / `file_extra` が加わります。
+
 ## runn から使う例
 
 ```yaml
@@ -75,6 +95,10 @@ steps:
   compareReport:
     exec:
       command: xlsxdiff --expect testdata/expected.xlsx --actual out/report.xlsx
+    test: current.exit_code == 0
+  compareAllReports:
+    exec:
+      command: xlsxdiff --expect-dir testdata/expected --actual-dir out
     test: current.exit_code == 0
 ```
 
