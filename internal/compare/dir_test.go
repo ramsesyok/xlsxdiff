@@ -171,3 +171,132 @@ func TestFilesWithIgnoreUsesExpectFileName(t *testing.T) {
 		t.Errorf("want no diffs, got %#v", got)
 	}
 }
+
+// 見出し行は比較し、その下のデータは最終行まで比較しない設定（"C2:C" など）を、実ファイルで確認する。
+func TestIgnoreOpenRangesOnWorkbooks(t *testing.T) {
+	// 見出し + データ 3 行のブックを作る。rows[0] が見出し。
+	book := func(t *testing.T, rows [][]string) string {
+		t.Helper()
+		f := excelize.NewFile()
+		defer f.Close()
+		for i, row := range rows {
+			cell, _ := excelize.CoordinatesToCellName(1, i+1)
+			if err := f.SetSheetRow("Sheet1", cell, &row); err != nil {
+				t.Fatal(err)
+			}
+		}
+		path := filepath.Join(t.TempDir(), "report.xlsx")
+		if err := f.SaveAs(path); err != nil {
+			t.Fatal(err)
+		}
+		return path
+	}
+	expect := book(t, [][]string{
+		{"id", "name", "time", "note"},
+		{"1", "foo", "10:00", "a"},
+		{"2", "bar", "10:01", "b"},
+		{"3", "baz", "10:02", "c"},
+	})
+
+	tests := []struct {
+		name   string
+		config string
+		actual [][]string
+		want   []string // 差分になるセル
+	}{
+		{
+			name:   "C2:C ignores only data in column C",
+			config: `cell: "C2:C"`,
+			actual: [][]string{
+				{"id", "name", "time", "note"},
+				{"1", "foo", "12:00", "a"},
+				{"2", "bar", "12:01", "b"},
+				{"3", "baz", "12:02", "c"},
+			},
+		},
+		{
+			name:   "C2:C still detects a changed header",
+			config: `cell: "C2:C"`,
+			actual: [][]string{
+				{"id", "name", "date", "note"},
+				{"1", "foo", "12:00", "a"},
+				{"2", "bar", "12:01", "b"},
+				{"3", "baz", "12:02", "c"},
+			},
+			want: []string{"C1"},
+		},
+		{
+			name:   "C2:C still detects changes in other columns",
+			config: `cell: "C2:C"`,
+			actual: [][]string{
+				{"id", "name", "time", "note"},
+				{"1", "foo", "12:00", "a"},
+				{"2", "BAR", "12:01", "b"},
+				{"3", "baz", "12:02", "X"},
+			},
+			want: []string{"B3", "D4"},
+		},
+		{
+			name:   "C2:C covers extra data rows in actual",
+			config: `cell: "C2:C"`,
+			actual: [][]string{
+				{"id", "name", "time", "note"},
+				{"1", "foo", "12:00", "a"},
+				{"2", "bar", "12:01", "b"},
+				{"3", "baz", "12:02", "c"},
+				{"", "", "12:03", ""},
+			},
+		},
+		{
+			name:   "C2:D ignores data in columns C and D",
+			config: `cell: "C2:D"`,
+			actual: [][]string{
+				{"id", "name", "time", "note"},
+				{"1", "foo", "12:00", "x"},
+				{"2", "bar", "12:01", "y"},
+				{"3", "baz", "12:02", "z"},
+			},
+		},
+		{
+			name:   `row "2:" ignores all data rows but keeps the header`,
+			config: `row: "2:"`,
+			actual: [][]string{
+				{"id", "NAME", "time", "note"},
+				{"9", "x", "y", "z"},
+				{"9", "x", "y", "z"},
+				{"9", "x", "y", "z"},
+			},
+			want: []string{"B1"},
+		},
+		{
+			name:   `column "C:" ignores column C and everything to the right`,
+			config: `column: "C:"`,
+			actual: [][]string{
+				{"id", "name", "TIME", "NOTE", "extra"},
+				{"1", "foo", "x", "y", "z"},
+				{"2", "BAR", "x", "y", "z"},
+				{"3", "baz", "x", "y", "z"},
+			},
+			want: []string{"B3"},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			rules, err := ignore.Parse([]byte("- file: report.xlsx\n  sheet: Sheet1\n  " + tt.config + "\n"))
+			if err != nil {
+				t.Fatal(err)
+			}
+			diffs, err := Files(expect, book(t, tt.actual), Options{Ignore: rules})
+			if err != nil {
+				t.Fatal(err)
+			}
+			var got []string
+			for _, d := range diffs {
+				got = append(got, d.Cell)
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("diff cells = %v, want %v (diffs: %+v)", got, tt.want, diffs)
+			}
+		})
+	}
+}
