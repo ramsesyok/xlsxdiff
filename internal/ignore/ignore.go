@@ -99,8 +99,9 @@ func (e lineError) Error() string { return fmt.Sprintf("line %d: %s", e.line, e.
 func Parse(data []byte) (*Rules, error) {
 	var doc yaml.Node
 	if err := yaml.Unmarshal(data, &doc); err != nil {
-		// よくある原因は、* で始まるパターンを引用符で囲んでいないこと（YAML ではエイリアス記号になる）。
-		return nil, fmt.Errorf("%w\nhint: quote values that start with * such as \"*.xlsx\"", err)
+		// よくある原因は、* で始まる値や : で終わる値を引用符で囲んでいないこと
+		// （YAML では * はエイリアス記号、末尾の : はキーの区切りになる）。
+		return nil, fmt.Errorf("%w\nhint: quote values that start with * or end with :, such as \"*.xlsx\" or \"2:\"", err)
 	}
 	rs := &Rules{}
 	if len(doc.Content) == 0 {
@@ -225,32 +226,58 @@ var (
 	rowRe    = regexp.MustCompile(`^[0-9]+$`)
 )
 
-// add は column / row / cell の 1 つの値（単一または "始点:終点"）を解釈して追加する。
+// add は column / row / cell の 1 つの値を解釈して追加する。
+//   - 単一: "C" / 2 / "B1"
+//   - 範囲: "A:C" / "2:5" / "B1:D3"
+//   - 最終行・最終列まで: "C:"（C 列から最終列）/ "2:"（2 行目から最終行）/ "C2:E"（C～E 列の 2 行目から最終行）
 func (r *Rule) add(kind, value string) error {
 	from, to, isRange := strings.Cut(strings.TrimSpace(value), ":")
+	from, to = strings.TrimSpace(from), strings.TrimSpace(to)
 	if !isRange {
 		to = from
 	}
+	toEnd := isRange && to == "" // "C:" / "2:" のように終点を省略した
 	switch kind {
 	case "column":
 		a, errA := columnNumber(from)
-		b, errB := columnNumber(to)
+		b, errB := maxColumn, error(nil)
+		if !toEnd {
+			b, errB = columnNumber(to)
+		}
 		if errA != nil || errB != nil {
-			return fmt.Errorf("column %q: use column letters such as \"A\" or a range such as \"A:C\"", value)
+			return fmt.Errorf(`column %q: use column letters such as "A", a range such as "A:C", or "C:" for column C to the last column`, value)
 		}
 		r.columns = append(r.columns, ordered(a, b))
 	case "row":
 		a, errA := rowNumber(from)
-		b, errB := rowNumber(to)
+		b, errB := maxRow, error(nil)
+		if !toEnd {
+			b, errB = rowNumber(to)
+		}
 		if errA != nil || errB != nil {
-			return fmt.Errorf("row %q: use a row number such as 2 or a range such as \"2:5\"", value)
+			return fmt.Errorf(`row %q: use a row number such as 2, a range such as "2:5", or "2:" for row 2 to the last row`, value)
 		}
 		r.rows = append(r.rows, ordered(a, b))
 	case "cell":
-		c1, r1, errA := excelize.CellNameToCoordinates(strings.TrimSpace(from))
-		c2, r2, errB := excelize.CellNameToCoordinates(strings.TrimSpace(to))
+		c1, r1, errA := excelize.CellNameToCoordinates(from)
+		if toEnd && errA == nil {
+			// "C2:" は「C 列だけ」とも「右下すべて」とも読めるので受け付けない。
+			col, _ := excelize.ColumnNumberToName(c1)
+			return fmt.Errorf(`cell %q: write the last column too, such as "%s%d:%s" for column %s from row %d to the last row`, value, col, r1, col, col, r1)
+		}
+		var c2, r2 int
+		var errB error
+		if toEnd {
+			errB = errors.New("missing end")
+		} else if columnRe.MatchString(to) {
+			// "C2:E" のように終点が列名だけなら、最終行までとする。
+			c2, errB = columnNumber(to)
+			r2 = maxRow
+		} else {
+			c2, r2, errB = excelize.CellNameToCoordinates(to)
+		}
 		if errA != nil || errB != nil {
-			return fmt.Errorf("cell %q: use a cell name such as \"B1\" or a range such as \"B1:D3\"", value)
+			return fmt.Errorf(`cell %q: use a cell name such as "B1", a range such as "B1:D3", or "C2:C" for column C from row 2 to the last row`, value)
 		}
 		r.cells = append(r.cells, rect{cols: ordered(c1, c2), rows: ordered(r1, r2)})
 	}

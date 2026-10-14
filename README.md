@@ -64,6 +64,10 @@ xlsxdiff --expect-dir testdata/expected --actual-dir out
   sheet: 表紙
   row: [2, "10:12"]          # 行（リストで複数指定可）
   cell: ["B1", "D5:E6"]      # セル（範囲は B1:D3 のように）
+- file: report.xlsx
+  sheet: Sheet1
+  cell: "C2:C"               # 最終行まで: C 列の 2 行目以降（見出しの C1 は比較する）
+                             # 行・列は "2:"（2 行目以降）、"C:"（C 列以降）とも書ける
 ```
 
 書き方の誤りはエラー（終了コード `2`）、どのファイル・シートにも当てはまらなかった指定は警告（標準エラー出力）になります。

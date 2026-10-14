@@ -53,6 +53,34 @@ func TestParseAndMatch(t *testing.T) {
 			kept:    []cellRef{{2, 2}},
 		},
 		{
+			name:   "row to the last row",
+			config: "- file: a.xlsx\n  sheet: S\n  row: \"2:\"\n",
+			file:   "a.xlsx", sheet: "S",
+			ignored: []cellRef{{1, 2}, {1, 1048576}},
+			kept:    []cellRef{{1, 1}},
+		},
+		{
+			name:   "column to the last column",
+			config: "- file: a.xlsx\n  sheet: S\n  column: \"C:\"\n",
+			file:   "a.xlsx", sheet: "S",
+			ignored: []cellRef{{3, 1}, {16384, 1}},
+			kept:    []cellRef{{2, 1}},
+		},
+		{
+			name:   "cell range to the last row keeps the header",
+			config: "- file: a.xlsx\n  sheet: S\n  cell: C2:C\n",
+			file:   "a.xlsx", sheet: "S",
+			ignored: []cellRef{{3, 2}, {3, 1048576}},
+			kept:    []cellRef{{3, 1}, {2, 2}, {4, 2}},
+		},
+		{
+			name:   "multi-column cell range to the last row, lower case and reversed",
+			config: "- file: a.xlsx\n  sheet: S\n  cell: [\"c2:e\", \"H5:G\"]\n",
+			file:   "a.xlsx", sheet: "S",
+			ignored: []cellRef{{3, 2}, {5, 100}, {7, 5}, {8, 1048576}},
+			kept:    []cellRef{{4, 1}, {6, 2}, {7, 4}, {9, 5}},
+		},
+		{
 			name:   "wildcard in file",
 			config: "- file: \"monthly/*.xlsx\"\n  sheet: S\n  cell: A1\n",
 			file:   "monthly/2026-10.xlsx", sheet: "S",
@@ -122,6 +150,10 @@ func TestParseErrors(t *testing.T) {
 		{"row zero", "- file: a.xlsx\n  sheet: S\n  row: 0\n", []string{`row "0"`}},
 		{"numeric cell pair", "- file: a.xlsx\n  sheet: S\n  cell: [1, 2]\n", []string{`cell "1"`, `cell "2"`}},
 		{"bad cell", "- file: a.xlsx\n  sheet: S\n  cell: 1A\n", []string{`cell "1A"`}},
+		{"ambiguous open cell range", "- file: a.xlsx\n  sheet: S\n  cell: \"C2:\"\n", []string{`cell "C2:"`, `"C2:C"`, "last column too"}},
+		{"open start column", "- file: a.xlsx\n  sheet: S\n  column: \":C\"\n", []string{`column ":C"`}},
+		{"open start row", "- file: a.xlsx\n  sheet: S\n  row: \":5\"\n", []string{`row ":5"`}},
+		{"open start cell", "- file: a.xlsx\n  sheet: S\n  cell: \":C\"\n", []string{`cell ":C"`}},
 		{"unknown key", "- file: a.xlsx\n  sheet: S\n  colum: A\n", []string{"line 3", `unknown key "colum"`}},
 		{"backslash", "- file: 'sub\\a.xlsx'\n  sheet: S\n  cell: A1\n", []string{"use / as the folder separator"}},
 		{"bad pattern", "- file: \"[a.xlsx\"\n  sheet: S\n  cell: A1\n", []string{"invalid pattern"}},
@@ -132,6 +164,7 @@ func TestParseErrors(t *testing.T) {
 			[]string{"line 3", "line 4", "sheet is required"},
 		},
 		{"invalid yaml", "- file: a.xlsx\n   sheet: S\n", []string{"yaml"}},
+		{"unquoted trailing colon", "- file: a.xlsx\n  sheet: S\n  row: 2:\n", []string{"yaml", `end with :`, `"2:"`}},
 		{"unquoted leading star", "- file: *.xlsx\n  sheet: S\n  cell: A1\n", []string{"yaml", `quote values that start with *`}},
 	}
 	for _, tt := range tests {
