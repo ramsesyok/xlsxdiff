@@ -29,11 +29,12 @@ xlsxdiff --expect-dir testdata/expected --actual-dir out
 | `--actual <file>` | 実際の Excel ファイル |
 | `--expect-dir <dir>` | 期待値の Excel ファイルを置いたディレクトリ |
 | `--actual-dir <dir>` | 実際の Excel ファイルを置いたディレクトリ |
-| `--format text\|json` | 出力形式（既定 `text`） |
+| `--format json\|text` | 標準出力の形式（既定 `json`）。`text` は人向けの表示 |
+| `--report <file>` | 結果の JSON をファイルにも書き出す（標準出力への出力はそのまま） |
 | `--raw` | 表示書式（数値書式・日付書式）を適用せず、生の値で比較する |
 | `--ignore-sheet-order` | シートの並び順の違いを無視する |
 | `--ignore-config <file>` | 比較から除外する列・行・セルを書いた YAML ファイル |
-| `-q, --quiet` | 何も出力せず終了コードのみ返す |
+| `-q, --quiet` | 標準出力に何も出力しない（`--report` のファイルは書き出す） |
 | `--version` | バージョン表示 |
 
 ### 終了コード
@@ -74,21 +75,16 @@ xlsxdiff --expect-dir testdata/expected --actual-dir out
 
 判定基準の詳細（具体例つき、テスト管理者向け）は [how-compare.md](how-compare.md) を参照してください。
 
-## 出力例
+## 出力
 
-text:
+結果は**差分の有無に関わらず**、JSON で標準出力に出力します。`--report <file>` を指定すると、同じ JSON をファイルにも書き出します。
 
-```
-sheet "Summary": missing in actual
-Sheet1!B3: expected "100", actual "120"
-2 difference(s) found
-```
-
-json（`--format json`）:
+### 差分ありの場合（終了コード `1`）
 
 ```json
 {
   "equal": false,
+  "count": 2,
   "diffs": [
     { "kind": "sheet_missing", "sheet": "Summary" },
     { "kind": "cell_value", "sheet": "Sheet1", "cell": "B3", "expected": "100", "actual": "120" }
@@ -96,32 +92,78 @@ json（`--format json`）:
 }
 ```
 
-`kind` は `sheet_missing` / `sheet_extra` / `sheet_order` / `cell_value` のいずれかです。
+### 一致した場合（終了コード `0`）
 
-ディレクトリ比較では、各行の先頭に対象ファイルの相対パスが付き、ファイルの過不足が追加で報告されます。
+```json
+{
+  "equal": true,
+  "count": 0,
+  "diffs": []
+}
+```
+
+### エラーの場合（終了コード `2`）
+
+比較できなかったときは `error` にメッセージが入ります（標準エラー出力にも表示します）。引数の誤りなど、比較の前に起きたエラーも同じ形で出力します。
+
+```json
+{
+  "equal": false,
+  "count": 0,
+  "error": "open actual \"out/report.xlsx\": open out/report.xlsx: no such file or directory",
+  "diffs": []
+}
+```
+
+| 項目 | 内容 |
+|---|---|
+| `equal` | すべて一致したら `true`。差分あり・エラーのときは `false` |
+| `count` | 差分の件数（`diffs` の要素数） |
+| `error` | エラーメッセージ。正常に比較できたときは項目自体がない |
+| `diffs` | 差分の一覧。差分がなければ空配列 `[]` |
+
+`diffs` の各要素の `kind` は次のいずれかです。ディレクトリ比較では各要素に `file`（相対パス）が付きます。
+
+| `kind` | 意味 | 主な項目 |
+|---|---|---|
+| `file_missing` / `file_extra` | ファイルの不足 / 余分（ディレクトリ比較のみ） | `file` |
+| `sheet_missing` / `sheet_extra` | シートの不足 / 余分 | `sheet` |
+| `sheet_order` | シートの並び順の違い | `expected`, `actual`（シート名の配列） |
+| `cell_value` | セルの値の違い | `sheet`, `cell`, `expected`, `actual` |
+
+無視設定がどこにも当てはまらなかったときの警告は、JSON には含めず標準エラー出力に表示します。
+
+### 人向けの表示（`--format text`）
 
 ```
-file "monthly/2026-10.xlsx": missing in actual
-file "monthly/2026-11.xlsx": unexpected in actual
-monthly/2026-09.xlsx: Sheet1!A1: expected "A", actual "A2"
-3 difference(s) found
+sheet "Summary": missing in actual
+Sheet1!B3: expected "100", actual "120"
+2 difference(s) found
 ```
 
-json では各差分に `file`（相対パス）が付き、`kind` に `file_missing` / `file_extra` が加わります。
+ディレクトリ比較では、各行の先頭に対象ファイルの相対パスが付きます。一致した場合は何も表示しません。
+`--format text` でも、`--report` のファイルは JSON で書き出します。
 
 ## runn から使う例
+
+標準出力の JSON を `fromJSON(current.stdout)` で読み取れます。
 
 ```yaml
 steps:
   compareReport:
     exec:
       command: xlsxdiff --expect testdata/expected.xlsx --actual out/report.xlsx
-    test: current.exit_code == 0
+    test: current.exit_code == 0 && fromJSON(current.stdout).count == 0
   compareAllReports:
     exec:
-      command: xlsxdiff --expect-dir testdata/expected --actual-dir out
-    test: current.exit_code == 0
+      command: xlsxdiff --expect-dir testdata/expected --actual-dir out --report out/xlsxdiff-result.json
+    test: |
+      current.exit_code == 0
+      && fromJSON(current.stdout).equal
 ```
+
+- 終了コード `1`（差分あり）と `2`（エラー）は、runn の `exec` ステップ自体の失敗にはならないので、`test` で判定します。
+- `--report` で保存した JSON は、テスト後に差分の内容を確認したり、別のツールで集計したりするのに使えます。
 
 ## リリース
 
