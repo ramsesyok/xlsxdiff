@@ -17,7 +17,7 @@ For each module, the source archive below provides its exact, unmodified version
 | github.com/xuri/efp | v0.0.1 | [source archive](https://proxy.golang.org/github.com/xuri/efp/@v/v0.0.1.zip) |
 | github.com/xuri/excelize/v2 | v2.11.0 | [source archive](https://proxy.golang.org/github.com/xuri/excelize/v2/@v/v2.11.0.zip) |
 | github.com/xuri/nfp | v0.0.2-0.20250530014748-2ddeb826f9a9 | [source archive](https://proxy.golang.org/github.com/xuri/nfp/@v/v0.0.2-0.20250530014748-2ddeb826f9a9.zip) |
-| go.yaml.in/yaml/v3 | v3.0.5 | [source archive](https://proxy.golang.org/go.yaml.in/yaml/v3/@v/v3.0.5.zip) |
+| go.yaml.in/yaml/v3 | v3.0.6 | [source archive](https://proxy.golang.org/go.yaml.in/yaml/v3/@v/v3.0.6.zip) |
 | golang.org/x/crypto | v0.53.0 | [source archive](https://proxy.golang.org/golang.org/x/crypto/@v/v0.53.0.zip) |
 | golang.org/x/net | v0.56.0 | [source archive](https://proxy.golang.org/golang.org/x/net/@v/v0.56.0.zip) |
 | golang.org/x/text | v0.38.0 | [source archive](https://proxy.golang.org/golang.org/x/text/@v/v0.38.0.zip) |
@@ -1063,9 +1063,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ```
 
 
-## go.yaml.in/yaml/v3@v3.0.5
+## go.yaml.in/yaml/v3@v3.0.6
 
-Source: https://proxy.golang.org/go.yaml.in/yaml/v3/@v/v3.0.5.zip
+Source: https://proxy.golang.org/go.yaml.in/yaml/v3/@v/v3.0.6.zip
 
 ### LICENSE
 
