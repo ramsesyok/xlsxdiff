@@ -9,18 +9,18 @@ For each module, the source archive below provides its exact, unmodified version
 | Module | Version | Source |
 |---|---|---|
 | github.com/inconshreveable/mousetrap | v1.1.0 | [source archive](https://proxy.golang.org/github.com/inconshreveable/mousetrap/@v/v1.1.0.zip) |
-| github.com/richardlehane/mscfb | v1.0.7 | [source archive](https://proxy.golang.org/github.com/richardlehane/mscfb/@v/v1.0.7.zip) |
+| github.com/richardlehane/mscfb | v1.0.9 | [source archive](https://proxy.golang.org/github.com/richardlehane/mscfb/@v/v1.0.9.zip) |
 | github.com/richardlehane/msoleps | v1.0.6 | [source archive](https://proxy.golang.org/github.com/richardlehane/msoleps/@v/v1.0.6.zip) |
 | github.com/spf13/cobra | v1.10.2 | [source archive](https://proxy.golang.org/github.com/spf13/cobra/@v/v1.10.2.zip) |
 | github.com/spf13/pflag | v1.0.10 | [source archive](https://proxy.golang.org/github.com/spf13/pflag/@v/v1.0.10.zip) |
 | github.com/tiendc/go-deepcopy | v1.7.2 | [source archive](https://proxy.golang.org/github.com/tiendc/go-deepcopy/@v/v1.7.2.zip) |
-| github.com/xuri/efp | v0.0.1 | [source archive](https://proxy.golang.org/github.com/xuri/efp/@v/v0.0.1.zip) |
-| github.com/xuri/excelize/v2 | v2.11.0 | [source archive](https://proxy.golang.org/github.com/xuri/excelize/v2/@v/v2.11.0.zip) |
+| github.com/xuri/efp | v0.0.3-0.20260924042702-217b81952dec | [source archive](https://proxy.golang.org/github.com/xuri/efp/@v/v0.0.3-0.20260924042702-217b81952dec.zip) |
+| github.com/xuri/excelize/v2 | v2.11.1 | [source archive](https://proxy.golang.org/github.com/xuri/excelize/v2/@v/v2.11.1.zip) |
 | github.com/xuri/nfp | v0.0.2-0.20250530014748-2ddeb826f9a9 | [source archive](https://proxy.golang.org/github.com/xuri/nfp/@v/v0.0.2-0.20250530014748-2ddeb826f9a9.zip) |
 | go.yaml.in/yaml/v3 | v3.0.5 | [source archive](https://proxy.golang.org/go.yaml.in/yaml/v3/@v/v3.0.5.zip) |
-| golang.org/x/crypto | v0.53.0 | [source archive](https://proxy.golang.org/golang.org/x/crypto/@v/v0.53.0.zip) |
-| golang.org/x/net | v0.56.0 | [source archive](https://proxy.golang.org/golang.org/x/net/@v/v0.56.0.zip) |
-| golang.org/x/text | v0.38.0 | [source archive](https://proxy.golang.org/golang.org/x/text/@v/v0.38.0.zip) |
+| golang.org/x/crypto | v0.58.0 | [source archive](https://proxy.golang.org/golang.org/x/crypto/@v/v0.58.0.zip) |
+| golang.org/x/net | v0.62.0 | [source archive](https://proxy.golang.org/golang.org/x/net/@v/v0.62.0.zip) |
+| golang.org/x/text | v0.43.0 | [source archive](https://proxy.golang.org/golang.org/x/text/@v/v0.43.0.zip) |
 
 ## Go runtime and standard library
 
@@ -270,9 +270,9 @@ Source: https://proxy.golang.org/github.com/inconshreveable/mousetrap/@v/v1.1.0.
 ```
 
 
-## github.com/richardlehane/mscfb@v1.0.7
+## github.com/richardlehane/mscfb@v1.0.9
 
-Source: https://proxy.golang.org/github.com/richardlehane/mscfb/@v/v1.0.7.zip
+Source: https://proxy.golang.org/github.com/richardlehane/mscfb/@v/v1.0.9.zip
 
 ### LICENSE.txt
 
@@ -947,16 +947,16 @@ SOFTWARE.
 ```
 
 
-## github.com/xuri/efp@v0.0.1
+## github.com/xuri/efp@v0.0.3-0.20260924042702-217b81952dec
 
-Source: https://proxy.golang.org/github.com/xuri/efp/@v/v0.0.1.zip
+Source: https://proxy.golang.org/github.com/xuri/efp/@v/v0.0.3-0.20260924042702-217b81952dec.zip
 
 ### LICENSE
 
 ```text
 BSD 3-Clause License
 
-Copyright (c) 2017 - 2025 Ri Xu All rights reserved.
+Copyright (c) 2017 - 2026 Ri Xu All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:
@@ -985,9 +985,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ```
 
 
-## github.com/xuri/excelize/v2@v2.11.0
+## github.com/xuri/excelize/v2@v2.11.1
 
-Source: https://proxy.golang.org/github.com/xuri/excelize/v2/@v/v2.11.0.zip
+Source: https://proxy.golang.org/github.com/xuri/excelize/v2/@v/v2.11.1.zip
 
 ### LICENSE
 
@@ -1141,46 +1141,9 @@ limitations under the License.
 ```
 
 
-## golang.org/x/crypto@v0.53.0
+## golang.org/x/crypto@v0.58.0
 
-Source: https://proxy.golang.org/golang.org/x/crypto/@v/v0.53.0.zip
-
-### LICENSE
-
-```text
-Copyright 2009 The Go Authors.
-
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions are
-met:
-
-   * Redistributions of source code must retain the above copyright
-notice, this list of conditions and the following disclaimer.
-   * Redistributions in binary form must reproduce the above
-copyright notice, this list of conditions and the following disclaimer
-in the documentation and/or other materials provided with the
-distribution.
-   * Neither the name of Google LLC nor the names of its
-contributors may be used to endorse or promote products derived from
-this software without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-```
-
-
-## golang.org/x/net@v0.56.0
-
-Source: https://proxy.golang.org/golang.org/x/net/@v/v0.56.0.zip
+Source: https://proxy.golang.org/golang.org/x/crypto/@v/v0.58.0.zip
 
 ### LICENSE
 
@@ -1215,9 +1178,46 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ```
 
 
-## golang.org/x/text@v0.38.0
+## golang.org/x/net@v0.62.0
 
-Source: https://proxy.golang.org/golang.org/x/text/@v/v0.38.0.zip
+Source: https://proxy.golang.org/golang.org/x/net/@v/v0.62.0.zip
+
+### LICENSE
+
+```text
+Copyright 2009 The Go Authors.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+   * Redistributions of source code must retain the above copyright
+notice, this list of conditions and the following disclaimer.
+   * Redistributions in binary form must reproduce the above
+copyright notice, this list of conditions and the following disclaimer
+in the documentation and/or other materials provided with the
+distribution.
+   * Neither the name of Google LLC nor the names of its
+contributors may be used to endorse or promote products derived from
+this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+```
+
+
+## golang.org/x/text@v0.43.0
+
+Source: https://proxy.golang.org/golang.org/x/text/@v/v0.43.0.zip
 
 ### LICENSE
 
